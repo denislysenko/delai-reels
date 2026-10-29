@@ -41,11 +41,11 @@ def matte(path):
 
 if __name__ == "__main__":
     # the frames at the composition's size, so the cutout maps 1:1 onto the video's object-fit
-    if len(glob.glob(os.path.join(frames, "*.png"))) < N:
+    if len([f for f in glob.glob(os.path.join(frames, "*.png")) if not os.path.basename(f).startswith("._")]) < N:
         subprocess.run(["ffmpeg", "-v", "error", "-i", os.path.join(here, "public", "footage.mp4"),
                         "-frames:v", str(N), "-vf", "scale=1080:1920", "-start_number", "0",
                         "-y", os.path.join(frames, "%04d.png")], check=True)
-    todo = sorted(glob.glob(os.path.join(frames, "*.png")))[:N]
+    todo = sorted(f for f in glob.glob(os.path.join(frames, "*.png")) if not os.path.basename(f).startswith("._"))[:N]  # exFAT: skip macOS ._ files
     with Pool(WORKERS, initializer=init) as pool:
         for i, out in enumerate(pool.imap_unordered(matte, todo), 1):
             print(f"{i}/{len(todo)} {os.path.basename(out)}", flush=True)

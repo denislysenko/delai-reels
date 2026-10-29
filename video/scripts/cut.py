@@ -40,7 +40,7 @@ import json, math, os, re, struct, subprocess, sys, wave
 WIN = 0.02            # RMS analysis window
 QUIET = float(os.environ.get("QUIET", "-55"))  # below this is true silence, not a consonant tail
 # or a breath. A noisier room (room tone around -50 dB) needs QUIET=-46, or no pause is cut.
-MIN_PAUSE = 0.30
+MIN_PAUSE = float(os.environ.get("MIN_PAUSE", "0.30"))  # shorter = also trims the small in-phrase gaps
 SQUEEZE_OVER = 0.65   # pauses longer than this get cut...
 KEEP_PAUSE = 0.30     # ...down to this
 PAD = 0.08            # air kept either side of a cut (anti-patterns: tail + ~0.08s)
@@ -219,7 +219,7 @@ r = subprocess.run(
     ["ffmpeg", "-hide_banner", "-v", "warning", "-i", src, "-/filter_complex", f"{tmp}/filter.txt",
      "-map", "[v]", "-map", "[a]", "-s", SIZE, "-c:v", "libx264", "-crf", "22",
      "-preset", "medium", "-g", "30", "-pix_fmt", "yuv420p", "-r", "30",
-     "-c:a", "aac", "-b:a", "160k", "-movflags", "+faststart", "-y", dst])
+     "-c:a", "aac", "-b:a", "320k", "-movflags", "+faststart", "-y", dst])
 if r.returncode:
     sys.exit("encode failed")
 
@@ -242,6 +242,9 @@ for w in words:
                  "em": 0 if key in FILLER else 1})
 json.dump(caps, open(os.path.join(here, "public", "captions.json"), "w"),
           ensure_ascii=False, indent=0)
+# splice times for seams.py: every join is re-transcribed and shown as frames before the edit goes on
+json.dump({"splices": [round(c, 3) for c in cuts], "duration": round(DUR, 3)},
+          open(os.path.join(here, "public", "cuts.json"), "w"))
 
 print(f"\nfootage.mp4  {DUR:.2f}s  {frames} frames   ({rescued} pauses whose -34dB start was "
       f"inside a word tail)")

@@ -61,11 +61,25 @@ else
   [ "$C" = 200 ] && ok "21st.dev key" "works" || bad 21st "21st.dev key" "rejected ($C) — SERVICES.md → 21st.dev"
 fi
 
+# Publishing to Instagram: Dropbox holds the video at a public direct link, Buffer posts it.
+if [ -n "$(key DROPBOX_REFRESH_TOKEN)" ]; then
+  R=$(python3 scripts/publish_dropbox.py check 2>&1) && ok "Dropbox" "${R#works: }" || bad dropbox "Dropbox" "$R"
+else bad dropbox "Dropbox" "not connected — SERVICES.md → Dropbox"
+fi
+if [ -n "$(key BUFFER_API_KEY)" ]; then
+  R=$(python3 scripts/publish_buffer.py check 2>&1) && ok "Buffer key" "${R#works: }" || bad buffer "Buffer key" "$R"
+else bad buffer "Buffer key" "not set — SERVICES.md → Buffer"
+fi
+
 # MCP servers: what Claude Code itself reports (needs the `claude` CLI on PATH)
 if has claude; then
   LIST=$(cd .. && claude mcp list 2>/dev/null)
-  for s in elevenlabs higgsfield 21st buffer; do
+  for s in elevenlabs higgsfield 21st; do
     on "$s" || continue
+    # DA||AI: Higgsfield is used through its CLI (signed in once), not through MCP
+    if [ "$s" = higgsfield ] && { has higgsfield || [ -x "$HOME/.local/bin/higgsfield" ]; }; then
+      ok "Higgsfield CLI" "used instead of MCP"; continue
+    fi
     line=$(printf '%s\n' "$LIST" | grep "^$s:")
     case "$line" in
       *Connected*) ok "MCP $s" "connected" ;;

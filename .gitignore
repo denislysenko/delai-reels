@@ -12,3 +12,5 @@ skills-lock.json
 
 # per-machine Claude Code settings
 .claude/settings.local.json
+
+__pycache__/
