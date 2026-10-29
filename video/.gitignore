@@ -1,0 +1,13 @@
+node_modules
+dist
+.DS_Store
+.env
+out
+
+# the cut and its per-frame cutouts are per-video and heavy — they live on disk, not in git
+public/footage.mp4
+public/cut/
+public/cover-bg.jpg
+public/cover-cutout.png
+public/poster-bg.jpg
+public/poster-cutout.png

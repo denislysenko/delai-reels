@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "sh \"$CLAUDE_PROJECT_DIR/.claude/hooks/session-start.sh\"" }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx remotion *)",
+      "Bash(bash scripts/*)",
+      "Bash(python3 scripts/*)",
+      "Bash(ffprobe *)",
+      "Bash(ffmpeg *)",
+      "Bash(ps -axo *)"
+    ]
+  }
+}

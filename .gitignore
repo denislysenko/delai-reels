@@ -1,0 +1,14 @@
+.DS_Store
+
+# raw takes and finished edits are heavy and personal
+takes/*
+!takes/.gitkeep
+edits/*
+!edits/.gitkeep
+
+# installed at setup (npx skills add remotion-dev/skills)
+.claude/skills/remotion-*
+skills-lock.json
+
+# per-machine Claude Code settings
+.claude/settings.local.json

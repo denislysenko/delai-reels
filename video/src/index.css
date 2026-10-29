@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+/*
+ * Fonts — the user's, chosen in the setup interview; none ship with the project. Until then the
+ * demo uses the system font. The families must match harness.config.json → fonts (Root.tsx
+ * refuses to render one that isn't loaded).
+ *
+ * Adding one: `npm i @fontsource/<family>` and import its WEIGHT files here
+ * (`@import "@fontsource/<family>/600.css";`), never the subset files (`latin-600.css` +
+ * `cyrillic-600.css`): those carry no unicode-range, so Chrome takes the last-declared subset for
+ * every character and Cyrillic silently renders in the system fallback — while measureText gets
+ * the real face, so caption wraps disagree with the DOM.
+ */
