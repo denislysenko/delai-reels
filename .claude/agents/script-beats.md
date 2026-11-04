@@ -12,6 +12,7 @@ Output: `video/SCRIPT.md` with
 - **the poster** (only if `style.poster.enabled`): the lines in the user's words and tone, which line carries the accent, a kicker only if `style.poster.kicker`; `TITLE_OUT` = the first splice;
 - **a table of cards** (unless `style.cards` is `none`) `from | dur | kind | head | lines/row | why`, as dense as the profile asks; kinds: a number → `count`, a step → `num` + `head`, an enumeration → `head` + `lines` or a `row` of icons landing on their words; every `from` = the frame of the first word of the phrase + 4;
 - **a table of stickers** (only if `style.stickers`) `from | dur | art | label` — one-word label, a compact art from `ART_NAMES` in `video/src/ui/Card.tsx`;
+- **a table of hero cues** (only if `style.hero.enabled`) `at | pose` — only over stretches where the person is not on screen; `pose` is a file name in `video/public/hero/` without `.png`;
 - **the words**: which get `em: 2` (if `style.captions.highlight` has «size») and `"accent": 1` (if it has «color»), by meaning, in the amount the profile describes.
 
 Rules:

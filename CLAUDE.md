@@ -5,7 +5,7 @@
 ## Первым делом в каждой сессии
 
 1. Открой `harness.config.json`. Если `"configured": false` — проект ещё не настроен: **до любой другой работы** проведи интервью по скиллу `setup` (`.claude/skills/setup/SKILL.md`; если скилл не загружен — прочитай файл и выполни его как инструкцию).
-2. Если настроен — задачи: «смонтируй ролик / новый дубль» → скилл `new-video`; «опубликуй / выложи в инсту / поставь на время» → `publish`; «проверь доступ» → `bash video/scripts/doctor.sh`; «подключи <сервис>» → `SERVICES.md` и блок 5 скилла `setup`; «разбери референсы», «поменяй палитру / шрифты / стиль» → соответствующий блок `setup`.
+2. Если настроен — задачи: «смонтируй ролик / новый дубль» → скилл `new-video`; «опубликуй / выложи в инсту / поставь на время» → `publish`; «сделай мультигероя» → `hero`; «проверь доступ» → `bash video/scripts/doctor.sh`; «подключи <сервис>» → `SERVICES.md` и блок 5 скилла `setup`; «разбери референсы», «поменяй палитру / шрифты / стиль» → соответствующий блок `setup`.
 
 ## Стиль — только пользователя
 
@@ -35,6 +35,7 @@ npx remotion still MyComp /tmp/t.png --frame=N --timeout=120000
 npm run master               # чанковый рендер + звук + loudnorm → out/final-master.mp4
 python3 scripts/publish_dropbox.py upload out/final-master.mp4 <папка>   # ролик в Dropbox → прямая ссылка
 python3 scripts/publish_buffer.py post --video <ссылка> --text out/post.txt [--at ISO|--now]   # пост в Buffer, по умолчанию черновик
+bash scripts/hero.sh cost|base|pick nb|poses|sheet   # мультигерой через Higgsfield: takes/hero/ → public/hero/ (скилл hero)
 ```
 
 ## Устройство
@@ -45,7 +46,8 @@ python3 scripts/publish_buffer.py post --video <ссылка> --text out/post.tx
 - `video/src/scenes/Title.tsx` — постер ЗА спикером. `scenes/Captions.tsx` — субтитры.
 - `video/src/ui/Footage.tsx` — таблица панч-инов + вырезка человека поверх постера. Без `public/footage.mp4` рисует заглушку.
 - `video/src/ui/Card.tsx` — карточка + `Float` (стикер), `Photo`, `Clip`, `Tag`, библиотека пиктограмм. `ui/Panel.tsx` — плашка, `Reveal`, `TYPE`, `EASE`. `ui/Sfx.tsx` — `Cue`, `Ticks`.
-- `video/scripts/` — `cut.py`, `chunks.py`, `seams.py`, `refs.py`, `variants.py`, `matte.py`, `master.sh`, `cover-sticker.py`, `doctor.sh`, `publish_dropbox.py`, `publish_buffer.py`.
+- `video/src/ui/Hero.tsx` — мультигерой: позы из `public/hero/`, въезд снизу, смена позы с пружиной, лёгкое дыхание. `src/hero/HeroDemo.tsx` — все позы по очереди, есть только при `style.hero.enabled`. Как сделать героя — скилл `hero`.
+- `video/scripts/` — `cut.py`, `chunks.py`, `seams.py`, `refs.py`, `variants.py`, `matte.py`, `master.sh`, `cover-sticker.py`, `doctor.sh`, `publish_dropbox.py`, `publish_buffer.py`, `hero.sh`.
 - `video/public/sfx/` — звуки пользователя по ролям (`card`, `count`, `end`), если он их выбрал. В проекте их нет.
 - `edits/N/` — архив готовых монтажей (в корне, не в `video/` — tsc компилирует всё, что там найдёт).
 - `SERVICES.md` — подключение ElevenLabs / Higgsfield / 21st.dev и выкладки в Instagram (Buffer + Dropbox).
@@ -57,6 +59,7 @@ python3 scripts/publish_buffer.py post --video <ссылка> --text out/post.tx
 - **Панч-ин только на склейке.** Каждая граница бита в таблице `Footage.tsx` — реальная склейка из вывода `cut.py`. Смена крупности ровно на склейке превращает джамп-кат в панч-ин; посреди непрерывного плана она читается как зум, склейка без смены крупности — как глюк. Перерезал дубль → пересчитай таблицу. Силу задаёт `style.motion.punch` (`none` / `soft` / `strong`), таблица пишется в полную силу. Не уменьшай кадр ниже 1.0.
 - **Карточки — строки таблицы `BEATS`**, один компонент `Card`, один кегль заголовка на ролик (`useHeadScale` меряет самую широкую строку). Карточка входит через 4 кадра после первого слова своей фразы — кадр бери из `captions.json` (секунды × 30). `count` — бегущий счётчик, всегда в паре с `<Ticks>`. Вид плашки — `style.cards` (`glass` / `solid` / `none`).
 - **Стикеры (`FLOATS`)** — только если `style.stickers`; окно стикера не пересекается с окном карточки (Composition бросит ошибку).
+- **Мультигерой** (`style.hero`, `ui/Hero.tsx`) — только если `style.hero.enabled` и в `video/public/hero/` лежат позы. Это мультяшная версия ведущего внизу кадра; ставим туда, где самого человека в кадре нет (графика, ролик под голос), поверх его живого лица не ставим. Позы — PNG с прозрачным фоном, все на одном холсте 3:4 в одном масштабе, срез по поясу у нижнего края: иначе при смене позы тело прыгает. Имена файлов латиницей (`point.png`), кириллица с «ё» на внешнем диске ломает путь. В композиции: `<Sequence from dur><Hero cues={[{ at, pose }]} dur={dur} /></Sequence>`, `at` от начала Sequence, `hold` — герой не уходит в конце ролика. Поза меняется в нижней точке приседания, без наплыва двух картинок. Лицо героя держим выше нижних 15% (`SAFE.bottom`); справа его частично закрывают кнопки Instagram, поэтому жест направлен в кадр, к графике.
 - **Субтитры** (`scenes/Captions.tsx`): вид — из `style.captions`; механика фиксирована: ОДИН кегль на весь ролик (минимум по всем группам после `measureText`-подгонки), маска на строку (не на слово — иначе слова двух кеглей теряют общую базовую линию), никогда `filter: drop-shadow` на строке (растеризует и размывает), короткое служебное слово не заканчивает строку. `em: 2` и `"accent": 1` в `captions.json` назначаются по смыслу.
 - **Анимации детерминированы:** только от `useCurrentFrame()`, никаких `useState`, `setTimeout`, CSS transitions, `Math.random()`. Темп — `PACE` из `style.motion.pace`.
 - **До последнего кадра:** последняя фраза субтитров уходит к `until={DURATION - 14}` — проверяй ПОСЛЕДНИЙ кадр отдельно.

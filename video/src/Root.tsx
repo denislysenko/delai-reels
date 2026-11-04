@@ -5,6 +5,8 @@ import config from "../../harness.config.json";
 import { MyComposition } from "./Composition";
 import { Cover } from "./Cover";
 import { PosterCover } from "./PosterCover";
+import { HeroDemo } from "./hero/HeroDemo";
+import { HERO } from "./ui/Hero";
 
 // Hold the render until the brand fonts are actually rasterised. @fontsource only DECLARES the
 // faces; the browser fetches them lazily on first use, so `document.fonts.ready` alone resolves
@@ -38,6 +40,8 @@ export const RemotionRoot: React.FC = () => {
   return (
     <>
       <MyComposition />
+      {/* демо мультигероя — только когда герой включён и позы сгенерированы (скилл hero) */}
+      {HERO.enabled ? <HeroDemo /> : null}
       <Still
         id="Cover"
         component={Cover}

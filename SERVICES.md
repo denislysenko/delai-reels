@@ -44,6 +44,8 @@ MCP-сервер ElevenLabs (`https://api.elevenlabs.io/v1/mcp`, вход чер
 
 **Зачем:** генерация коротких видеовставок (б-ролл), когда спикер описывает то, что можно показать. В ролике — максимум ~3 штуки, агент показывает их стикером `Clip`.
 
+Ещё Higgsfield рисует мультигероя (`style.hero`): по фото человека базовый портрет в мультяшном стиле, по нему позы, фон вырезает тоже Higgsfield (`image_background_remover`). Делает это скилл `hero` через Higgsfield CLI (`video/scripts/hero.sh`): установка `curl -fsSL https://raw.githubusercontent.com/higgsfield-ai/cli/main/install.sh | sh`, вход `higgsfield auth login` (пользователь вводит сам, в браузере), проверка `higgsfield account status`. Позы кладутся в `video/public/hero/`, правила — `CLAUDE.md` → «Мультигерой». На бесплатном тарифе картинки не генерируются (ответ `job_minimum_basic_plan_required`). На ноябрь 2026 поза стоит около 3 кредитов: Nano Banana 2 в 2k и вырезка фона.
+
 **Стоимость:** генерации платные (кредиты Higgsfield). Агент спрашивает перед каждой и называет цену.
 
 1. Зарегистрируйтесь на https://higgsfield.ai и при необходимости пополните кредиты.

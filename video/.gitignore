@@ -12,3 +12,6 @@ public/cover-cutout.png
 public/poster-bg.jpg
 public/poster-cutout.png
 public/cuts.json
+
+# мультигерой — личные картинки пользователя (исходники лежат в takes/hero/)
+public/hero/

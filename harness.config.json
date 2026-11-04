@@ -43,7 +43,12 @@
       "punch": "none"
     },
     "grade": false,
-    "sfx": false
+    "sfx": false,
+    "hero": {
+      "enabled": false,
+      "side": "right",
+      "width": 640
+    }
   },
   "currency": "",
   "transcription": "whisper",
