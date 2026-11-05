@@ -8,6 +8,10 @@ which is why the master goes to Dropbox first (publish_dropbox.py upload).
     python3 scripts/publish_buffer.py post --channel ID --video URL --text out/post.txt
             [--draft (default) | --now | --at 2026-11-03T09:00:00Z | --queue]
             [--type reel] [--thumb-ms 1500] [--no-feed]
+    # carousel: repeat --video in slide order (2–20 items), it goes out as an Instagram post
+    python3 scripts/publish_buffer.py post --video URL1 --video URL2 ... --text out/post.txt
+    # carousel of pictures (JPEG slides): repeat --image instead, same rules
+    python3 scripts/publish_buffer.py post --image URL1 --image URL2 ... --text post.txt
     python3 scripts/publish_buffer.py status POST_ID
     python3 scripts/publish_buffer.py wait POST_ID [--cleanup /reels/<folder>]   # every 5 min until sent/error
 
@@ -94,7 +98,11 @@ def main():
     sub.add_parser("channels")
     sp = sub.add_parser("post")
     sp.add_argument("--channel", default=env("BUFFER_CHANNEL_ID"))
-    sp.add_argument("--video", required=True, help="public direct URL (publish_dropbox.py upload)")
+    media = sp.add_mutually_exclusive_group(required=True)
+    media.add_argument("--video", action="append",
+                       help="public direct URL (publish_dropbox.py upload); repeat it for a carousel, in slide order")
+    media.add_argument("--image", action="append",
+                       help="public direct URL of a picture (JPEG/PNG); repeat it for a carousel, in slide order")
     sp.add_argument("--text", required=True, help="file with the caption")
     when = sp.add_mutually_exclusive_group()
     when.add_argument("--now", action="store_true")
@@ -120,9 +128,19 @@ def main():
     elif a.cmd == "post":
         if not a.channel:
             die("укажи --channel (publish_buffer.py channels) или BUFFER_CHANNEL_ID в video/.env")
-        video = {"url": a.video}
-        if a.thumb_ms is not None:
-            video["metadata"] = {"thumbnailOffset": a.thumb_ms}
+        items = a.video or a.image
+        carousel = len(items) > 1
+        if carousel and not 2 <= len(items) <= 20:
+            die("в карусели Instagram от 2 до 20 элементов")
+        if a.thumb_ms is not None and (carousel or a.image):
+            die("--thumb-ms только для одного ролика: у карусели обложка — первый слайд")
+        if a.video:
+            videos = [{"url": url} for url in a.video]
+            if a.thumb_ms is not None:
+                videos[0]["metadata"] = {"thumbnailOffset": a.thumb_ms}
+            assets = [{"video": v} for v in videos]
+        else:
+            assets = [{"image": {"url": url}} for url in a.image]
         service = next((c["service"] for c in channels() if c["id"] == a.channel), None)
         if service is None:
             die("такого канала нет — publish_buffer.py channels")
@@ -130,10 +148,12 @@ def main():
             "channelId": a.channel,
             "text": open(a.text).read().strip(),
             "schedulingType": "automatic",
-            "assets": [{"video": video}],
+            "assets": assets,
         }
         if service == "instagram":
-            inp["metadata"] = {"instagram": {"type": a.type, "shouldShareToFeed": not a.no_feed}}
+            # несколько видео — это карусель, а она в Instagram бывает только типа «post»
+            kind = "post" if carousel or a.image else a.type
+            inp["metadata"] = {"instagram": {"type": kind, "shouldShareToFeed": not a.no_feed}}
         if a.now:
             inp["mode"] = "shareNow"
         elif a.queue:
